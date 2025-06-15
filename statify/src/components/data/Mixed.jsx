@@ -65,8 +65,6 @@ export default function Mixed({ username }) {
 
             {userData && (
                 <div className="bg-white flex flex-col justify-center items-center p-4 rounded-lg shadow">
-                    <h2 className="text-xl font-bold">User: {userData.username}</h2>
-                    <p className="mt-2">Total Problems Solved: {userData.totalSolved}</p>
                     <div className="flex items-center mt-4">
                         <img src={userData.github.avatar} alt="GitHub Avatar" className="w-12 h-12 rounded-full" />
                         <div className="ml-3">

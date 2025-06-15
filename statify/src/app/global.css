@@ -15,6 +15,17 @@
   src: url('/fonts/Moldity.otf') format('opentype');
   /* font-display: swap; */
 }
+@layer base {
+  :root {
+    --background: 24 9% 95%;
+    --foreground: 24 9% 5%;
+  }
+  
+  .dark {
+    --background: 24 9% 5%;
+    --foreground: 24 9% 95%;
+  }
+}
 
 :root {
   --bg: #000000;

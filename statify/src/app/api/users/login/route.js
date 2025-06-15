@@ -1,10 +1,15 @@
 import { PrismaClient } from "@prisma/client";
-import { validateUser } from "../utils/validateUser";
 import { comparePassword } from "../utils/comparePassword";
 import { generateToken } from "../utils/jwtToken";
 import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
+
+async function validateUser(email) {
+    return await prisma.user.findUnique({
+        where: { email },
+    });
+}
 
 export async function POST(request) {
     try {
@@ -18,17 +23,23 @@ export async function POST(request) {
 
         try {
             await comparePassword(password, user.password);
-        } 
+        }
         catch (error) {
             return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
         }
 
-        console.log("User fetched from DB:", user);
-        
         const token = generateToken(user);
+
         const response = NextResponse.json({
             message: "Login Successfully",
             success: true,
+            user: {
+                username: user.username,
+                leetcodeId: user.leetcodeId,
+                codeforcesId: user.codeforcesId,
+                gfgId: user.gfgId,
+                githubId: user.githubId,
+            },
         });
 
         response.headers.set(
@@ -37,8 +48,8 @@ export async function POST(request) {
         );
 
         return response;
-    } 
-    catch(error){
+    }
+    catch (error) {
         console.error("Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

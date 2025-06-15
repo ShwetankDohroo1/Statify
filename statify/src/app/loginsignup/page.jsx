@@ -35,12 +35,26 @@ const LoginSignupToggle = () => {
     const onLogin = async () => {
         try {
             setLoading(true);
-            await axios.post('/api/users/login', { email, password });
-            toast.success('Login success');
-            router.push(`/platform`);
+            const response = await axios.post('/api/users/login', { email, password });
+
+            if (response.data?.user) {
+                const { username, leetcodeId, codeforcesId, gfgId, githubId } = response.data.user;
+
+                if (!leetcodeId && !codeforcesId && !gfgId && !githubId) {
+                    router.push(`/platform`);
+                } 
+                else {
+                    router.push(`/dashboard/${username}`);
+                }
+
+                toast.success('Login success');
+            } 
+            else {
+                toast.error('Invalid response from server');
+            }
         }
         catch (error) {
-            console.log('Login Failed', error.message);
+            console.error('Login Failed', error.message);
             toast.error(error.message);
         }
         finally {

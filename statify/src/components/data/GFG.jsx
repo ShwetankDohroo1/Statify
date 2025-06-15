@@ -1,46 +1,33 @@
-import { useEffect, useState } from "react";
-
-export default function GFG({ username }) {
-    const [userData, setUserData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-        if (!username) 
-            return;
-        
-        const fetchData = async () => {
-            try {
-                const response = await fetch(`/api/gfg?username=${username}`);
-                if (!response.ok) {
-                    throw new Error("Failed to fetch GFG user data");
-                }
-                const data = await response.json();
-                setUserData(data.data);
-                
-            } 
-            catch (err){
-                setError(err.message);
-            } 
-            finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [username]);
+export default function GFG({ userData }) {
+    if (!userData) {
+        return (
+            <div className="w-full p-4">
+                <p>Loading your GFG data...</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="w-full p-4">
-            {loading && <p>Loading your GFG data...</p>}
-            {error && <p className="text-red-500">Error: {error}</p>}
-            {userData && (
-                <div className="bg-white p-4 rounded-lg shadow">
-                    <h2 className="text-xl font-bold">{userData.name}</h2>
-                    <p>Institute Rank: {userData.institute_rank}</p>
-                    <p>Problems Solved: {userData.total_problems_solved}</p>
+        <div className="w-full p-4 bg-white rounded-lg shadow">
+            <h1 className="text-2xl font-bold mb-4">GFG Profile</h1>
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <p className="font-semibold">Name:</p>
+                    <p>{userData.name}</p>
                 </div>
-            )}
+                <div>
+                    <p className="font-semibold">Institute:</p>
+                    <p>{userData.institute_name}</p>
+                </div>
+                <div>
+                    <p className="font-semibold">Problems Solved:</p>
+                    <p className="text-blue-600 font-bold">{userData.total_problems_solved}</p>
+                </div>
+                <div>
+                    <p className="font-semibold">Institute Rank:</p>
+                    <p>#{userData.institute_rank}</p>
+                </div>
+            </div>
         </div>
     );
 }

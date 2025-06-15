@@ -34,6 +34,7 @@ export default function CodeForces({ username }) {
             {error && <p className="text-red-500">Error: {error}</p>}
             {userData && userData.result && userData.result.length > 0 && (
                 <div className="bg-white p-4 rounded-lg shadow">
+                    <h1 className="text-5x">CodeForces</h1>
                     <h2 className="text-xl font-bold">{userData.result[0].handle}</h2>
                     <p>Contribution: {userData.result[0].contribution}</p>
                     <p>Friend Count: {userData.result[0].friendOfCount}</p>

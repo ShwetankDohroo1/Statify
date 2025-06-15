@@ -22,8 +22,8 @@ export default function MainPage() {
         setPositions(images.map(() => ({
             x: Math.random() * (window.innerWidth - 100),
             y: Math.random() * (window.innerHeight - 100),
-            dx: (Math.random() - 0.5) * 4,
-            dy: (Math.random() - 0.5) * 4,
+            dx: (Math.random() - 1) * 4,
+            dy: (Math.random() - 1) * 4,
             isDragging: false
         })));
     }, []);
@@ -93,15 +93,15 @@ export default function MainPage() {
 
     return (
         <div className="mainpage flex flex-col h-screen w-full justify-evenly relative overflow-hidden" onMouseMove={onDrag} onMouseUp={endDrag} onMouseLeave={endDrag} >
-            <div className="mx-auto w-full flex flex-col items-center p-5">
+            <div className="mx-auto w-6/12 flex flex-col items-center p-5">
                 <div className="container1 flex flex-col w-full">
-                    <div className="heading flex flex-col text-center justify-center items-center w-full">
+                    <div className="heading flex flex-col text-center justify-center items-center">
                         <h1 className="subheading relative inline-block text-7xl font-bold text-[#fe9859]">
                             Get Your Stats Using
                         </h1>
-                        <h1 className="heading1 flex justify-center w-full">
+                        <div className="w-full max-w-3xl aspect-video relative">
                             <Scene />
-                        </h1>
+                        </div>
                     </div>
                     <div className="about text-center p-5 m-5">
                         <h1 className="text-xl text-[#fe9859]">Get your complete statistics of your coding platforms</h1>
