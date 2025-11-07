@@ -1,12 +1,11 @@
 'use client';
-// import DashBoard from '@/components/DashBoard';
-import HomePage from '../components/mainpage';
+import dynamic from 'next/dynamic';
 export default function Home() {
+  const HomePage = dynamic(() => import('../components/mainpage'), { ssr: false });
   return (
     <>
       <div className="h-full w-full">
         <HomePage />
-        {/* <DashBoard /> */}
       </div>
     </>
   );
