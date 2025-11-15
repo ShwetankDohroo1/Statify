@@ -1,20 +1,21 @@
 import { PrismaClient } from "@prisma/client";
 import { comparePassword } from "../utils/comparePassword";
 import { generateToken } from "../utils/jwtToken";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-async function validateUser(email) {
+async function validateUser(email: string) {
     return await prisma.user.findUnique({
         where: { email },
     });
 }
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
     try {
         const reqBody = await request.json();
-        const { email, password } = reqBody;
+        console.log(reqBody.values);
+        const { email, password } = reqBody.values;
 
         const user = await validateUser(email);
         if (!user) {
@@ -49,7 +50,7 @@ export async function POST(request) {
 
         return response;
     }
-    catch (error) {
+    catch (error: any) {
         console.error("Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

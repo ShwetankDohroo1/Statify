@@ -6,8 +6,8 @@ import GlareHover from './ui/Animations/GlareHover/GlareHover';
 import Magnet from './ui/Animations/Magnet/Magnet';
 import Particles from './ui/Backgrounds/Particles/Particles';
 import ShinyText from './ui/TextAnimations/ShinyText/ShinyText';
-import LoginSignupToggleModal from '@/app/loginsignup/page';
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
+import LoginSignupToggleModal from '@/app/loginsignup/page';
 
 const TextPressure = dynamic(() => import('./ui/TextAnimations/TextPressure/TextPressure'), { ssr: false });
 
@@ -61,7 +61,7 @@ export default function MainPage() {
 
                     <Magnet padding={100} disabled={false} magnetStrength={5} showTooltip={true} tooltipText="Click to get started">
                         <GlareHover glareColor="#ffffff" glareOpacity={0.4} glareAngle={-30} transitionDuration={800} playOnce={false}>
-                            <Dialog isOpen={modalOpen} onOpenChange={setModalOpen}>
+                            <Dialog open={modalOpen} onOpenChange={setModalOpen}>
                                 <DialogTrigger>
                                     <div className="cursor-pointer w-full">
                                         <div className="logbut flex flex-col sm:flex-row items-center justify-center w-full gap-4 bg-[#cb7a47] text-white p-3 rounded-xl hover:bg-[#fec19b] hover:text-[#985b35] transition duration-200">

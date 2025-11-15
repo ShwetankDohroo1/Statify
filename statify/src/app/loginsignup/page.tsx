@@ -1,6 +1,4 @@
-'use client';
-
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
@@ -9,13 +7,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Mail, Lock, User, Eye, EyeOff, Sparkles, ArrowRight } from 'lucide-react';
-import {
-    Form,
-    FormField,
-    FormItem,
-    FormControl,
-    FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '../../components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -35,7 +27,7 @@ const LoginSignupToggleModal = () => {
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const form = useForm({
+    const form = useForm<any>({
         resolver: zodResolver(isSignup ? signupSchema : loginSchema),
         defaultValues: {
             username: '',
@@ -50,7 +42,7 @@ const LoginSignupToggleModal = () => {
         setShowPassword(false);
     };
 
-    const onSubmit = async (values) => {
+    const onSubmit = async (values: any) => {
         try {
             setLoading(true);
             if (isSignup) {
@@ -59,10 +51,16 @@ const LoginSignupToggleModal = () => {
                 setIsSignup(false);
                 form.reset();
             } else {
-                const res = await axios.post('/api/users/login', values);
+                const res = await axios.post('/api/users/login', { values, rememberMe });
                 if (res.data?.user) {
                     const { username, leetcodeId, codeforcesId, gfgId, githubId } = res.data.user;
                     toast.success('Welcome back! 👋');
+                    if (rememberMe) {
+                        localStorage.setItem('rememberMe', 'true');
+                        localStorage.setItem('user', JSON.stringify(res.data.user));
+                    } else {
+                        sessionStorage.setItem('user', JSON.stringify(res.data.user));
+                    }
                     router.push(
                         !leetcodeId && !codeforcesId && !gfgId && !githubId
                             ? `/platform`
@@ -72,7 +70,7 @@ const LoginSignupToggleModal = () => {
                     toast.error('Invalid response from server');
                 }
             }
-        } catch (err) {
+        } catch (err: any) {
             toast.error(err?.response?.data?.error || 'Something went wrong');
         } finally {
             setLoading(false);
@@ -83,14 +81,8 @@ const LoginSignupToggleModal = () => {
         <div className="w-full max-w-md mx-auto relative">
             <motion.div
                 className="absolute rounded-3xl opacity-75"
-                animate={{
-                    opacity: [0.5, 0.8, 0.5],
-                }}
-                transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                }}
+                animate={{ opacity: [0.5, 0.8, 0.5] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
             />
 
             <motion.div
@@ -111,8 +103,8 @@ const LoginSignupToggleModal = () => {
                             <button
                                 onClick={() => isSignup && handleToggle()}
                                 className={`relative flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-300 ${!isSignup
-                                        ? 'text-black'
-                                        : 'text-gray-400 hover:text-[#474d57]'
+                                    ? 'text-black'
+                                    : 'text-gray-400 hover:text-[#474d57]'
                                     }`}
                             >
                                 {!isSignup && (
@@ -131,8 +123,8 @@ const LoginSignupToggleModal = () => {
                             <button
                                 onClick={() => !isSignup && handleToggle()}
                                 className={`relative flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-300 ${isSignup
-                                        ? 'text-black'
-                                        : 'text-gray-400 hover:text-[#474d57]'
+                                    ? 'text-black'
+                                    : 'text-gray-400 hover:text-[#474d57]'
                                     }`}
                             >
                                 {isSignup && (
@@ -322,7 +314,7 @@ const LoginSignupToggleModal = () => {
                             <button
                                 type="button"
                                 className="w-full py-4 border-2 border-gray-200 hover:border-gray-300 rounded-xl font-medium text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3 group"
-                                onClick={() => toast.info('Google login coming soon! 🚀')}
+                                onClick={() => toast('Google login coming soon! 🚀')}
                             >
                                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                                     <path
@@ -348,7 +340,7 @@ const LoginSignupToggleModal = () => {
                             </button>
                         </form>
                     </Form>
-                    
+
                     <p className="text-center text-sm text-gray-500 mt-6">
                         {isSignup ? 'Already have an account? ' : "Don't have an account? "}
                         <button

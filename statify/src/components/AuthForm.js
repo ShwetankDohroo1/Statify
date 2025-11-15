@@ -9,7 +9,7 @@ const LoginSignupUI = () => {
 
     const toggleForm = () => {
         setIsSignup(!isSignup);
-        setError(''); // Clear any previous errors when toggling
+        setError('');
     };
 
     const handleSubmit = async (e) => {
@@ -26,7 +26,7 @@ const LoginSignupUI = () => {
             const data = await response.json();
             if (data.success) {
                 console.log(isSignup ? 'Signup successful!' : 'Login successful!', data);
-                window.location.href = '/dashboard'; // Redirect to a dashboard or homepage
+                window.location.href = '/dashboard';
             } else {
                 setError(data.error);
             }
@@ -45,7 +45,6 @@ const LoginSignupUI = () => {
                     </div>
                 </div>
                 <form className="emailForm" onSubmit={handleSubmit}>
-                    {/* Username Field (only for signup) */}
                     {isSignup && (
                         <input
                             type="text"
@@ -57,7 +56,6 @@ const LoginSignupUI = () => {
                             required
                         />
                     )}
-                    {/* Email Field */}
                     <input
                         type="email"
                         id="email"
@@ -67,7 +65,6 @@ const LoginSignupUI = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         required
                     />
-                    {/* Password Field */}
                     <input
                         type="password"
                         id="password"
@@ -77,7 +74,6 @@ const LoginSignupUI = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                     />
-                    {/* Remember me checkbox (only for signup) */}
                     {isSignup && (
                         <div id="rememberMeField">
                             <label>
@@ -86,7 +82,6 @@ const LoginSignupUI = () => {
                             </label>
                         </div>
                     )}
-                    {/* Submit Button */}
                     <input
                         type="submit"
                         id="submit"
@@ -94,7 +89,6 @@ const LoginSignupUI = () => {
                     />
                     {error && <p className="error">{error}</p>}
                 </form>
-                {/* Social login buttons */}
                 <a href="#" className="socialButton facebook">Facebook</a>
                 <a href="#" className="socialButton twitter">Twitter</a>
                 <a href="#" className="socialButton googleplus">Google +</a>

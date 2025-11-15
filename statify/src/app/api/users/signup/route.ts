@@ -1,10 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "../utils/hashPassword";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
     try {
         const reqBody = await request.json();
         const { username, password, email } = reqBody;
@@ -37,7 +37,7 @@ export async function POST(request) {
             user: newUser,
         });
     }
-    catch (err) {
+    catch (err: any) {
         console.error("Error in user signup:", err);
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
