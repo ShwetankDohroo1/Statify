@@ -8,6 +8,7 @@ export type User = {
     codeforcesId: string;
     gfgId: string;
     githubId: string;
+    email:string;
 }
 
 const fetchUserData = async (username?: string): Promise<User> => {

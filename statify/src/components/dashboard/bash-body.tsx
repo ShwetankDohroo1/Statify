@@ -1,17 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
-import NavBar from './navbar';
-import Leetcode from './data/LeetCode';
-import GFG from './data/GFG';
-import CodeForces from './data/CodeForces';
-import Github from './data/Github';
-import Mixed from './data/Mixed';
-import useUserDetails from '../app/hook/useUserDetails';
-import { GFGResponse } from '../app/fetchers/fetch-gfg';
-import { CodeForcesReponse } from '../app/fetchers/fetch-codeforces';
+import NavBar from '../navbar';
+import Leetcode from '../data/LeetCode';
+import CodeForces from '../data/CodeForces';
+import Mixed from '../data/Mixed';
+import useUserDetails from '../../app/hook/useUserDetails';
+import { GFGResponse } from '../../app/fetchers/fetch-gfg';
+import { CodeForcesReponse } from '../../app/fetchers/fetch-codeforces';
 import { useDashboardData } from '@/app/dashboard/useDashboardData';
+import GFG from '../data/GFG';
+import Github from '../data/Github';
+import { SHADES } from './constant';
+import UserCard from './user-card';
+import { User } from '@/app/fetchers/get-user';
 
 type PlatformId = {
     leetcodeId: string;
@@ -49,10 +52,7 @@ type SidebarProps = {
     platformIds: PlatformId;
     username: string;
     userData: UserData;
-};
-
-type UserCardProp = {
-    username: string;
+    userDetails?: User
 };
 
 type AccountItemProps = {
@@ -74,17 +74,20 @@ export default function DashBody() {
     const [bgColor, setBgColor] = useState('#fdf6e3');
 
     const {
-        userData,
+        userData: userDetails,
         isLoading: isUserLoading,
         isError: isUserError,
     } = useUserDetails(username);
 
-    const leetcodeId = userData?.leetcodeId ?? '';
-    const codeforcesId = userData?.codeforcesId ?? '';
-    const gfgId = userData?.gfgId ?? '';
-    const githubId = userData?.githubId ?? '';
-
-    const platformIds: PlatformId = { leetcodeId, codeforcesId, gfgId, githubId };
+    const platformIds = useMemo(
+        () => ({
+            leetcodeId: userDetails?.leetcodeId || "",
+            codeforcesId: userDetails?.codeforcesId || "",
+            gfgId: userDetails?.gfgId || "",
+            githubId: userDetails?.githubId || "",
+        }),
+        [userDetails]
+    );
 
     const {
         leetcodeData,
@@ -130,6 +133,7 @@ export default function DashBody() {
                 <Sidebar
                     platformIds={platformIds}
                     username={username ?? ''}
+                    userDetails={userDetails}
                     userData={combinedData}
                 />
                 <DashboardContent
@@ -153,9 +157,9 @@ const ErrorUI = ({ message }: { message: string }) => (
     </div>
 );
 
-const Sidebar = ({ platformIds, username, userData }: SidebarProps) => (
+const Sidebar = ({ platformIds, username, userDetails, userData }: SidebarProps) => (
     <aside className="w-full lg:w-1/4 space-y-6">
-        <UserCard username={username} />
+        <UserCard username={username} userData={userDetails} />
         <AccountsList platformIds={platformIds} userData={userData} />
         {platformIds?.leetcodeId &&
             platformIds?.gfgId &&
@@ -166,20 +170,6 @@ const Sidebar = ({ platformIds, username, userData }: SidebarProps) => (
                 </div>
             )}
     </aside>
-);
-
-const UserCard = ({ username }: UserCardProp) => (
-    <div className="p-6 rounded-xl shadow-lg border border-blue-400 bg-gradient-to-br from-blue-300 to-blue-500 text-white hover:scale-105 transition-all duration-300">
-        <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-blue-600 text-white font-bold rounded-full flex items-center justify-center shadow-md">
-                {username.charAt(0).toUpperCase()}
-            </div>
-            <div>
-                <h2 className="text-xl font-semibold">{username}</h2>
-                <p className="text-sm opacity-80">@{username}</p>
-            </div>
-        </div>
-    </div>
 );
 
 const AccountsList = ({ platformIds, userData }: AccountsListProps) => {
@@ -212,51 +202,65 @@ const AccountsList = ({ platformIds, userData }: AccountsListProps) => {
     );
 };
 
-const AccountItem = ({ name, id, color }: AccountItemProps) => (
-    <li className="flex justify-between items-center text-white p-4 rounded-lg shadow-md bg-gradient-to-r from-gray-700 to-gray-900 hover:scale-105 transition-all duration-300">
-        <div className="flex items-center gap-3">
-            <div
-                className={`h-8 w-8 rounded-full bg-${color}-500 text-white flex items-center justify-center shadow-md`}
-            >
-                {name.charAt(0)}
+const colorMap: Record<string, string> = {
+    yellow: "bg-yellow-500",
+    green: "bg-green-500",
+    blue: "bg-blue-500",
+    purple: "bg-purple-500",
+};
+
+const AccountItem = ({ name, id, color }: AccountItemProps) => {
+    const bg = colorMap[color] || "bg-gray-500";
+
+    const LINKS: Record<string, string> = {
+        LeetCode: `https://leetcode.com/${id}`,
+        Codeforces: `https://codeforces.com/profile/${id}`,
+        GitHub: `https://github.com/${id}`,
+        GFG: `https://auth.geeksforgeeks.org/user/${id}`,
+    };
+
+    const handleClick = () => {
+        window.open(LINKS[name], "_blank");
+    };
+
+    return (
+        <li
+            onClick={handleClick}
+            className="cursor-pointer flex justify-between items-center text-white p-4 rounded-lg shadow-md bg-gradient-to-r from-gray-700 to-gray-900 hover:scale-105 transition-all duration-300"
+        >
+            <div className="flex items-center gap-3">
+                <div className={`h-8 w-8 rounded-full ${bg} text-white flex items-center justify-center shadow-md`}>
+                    {name.charAt(0)}
+                </div>
+                <span className="font-medium">{name}</span>
             </div>
-            <span className="font-medium">{name}</span>
-        </div>
-        <span className="text-sm opacity-80">{id}</span>
-    </li>
-);
+            <span className="text-sm opacity-80">{id}</span>
+        </li>
+    );
+};
 
 const DashboardContent = ({ platformIds, userData }: DashboardContentProps) => {
-    const shades = [
-        'bg-blue-100 border-blue-300',
-        'bg-blue-200 border-blue-400',
-        'bg-blue-300 border-blue-500',
-        'bg-blue-400 border-blue-600',
-        'bg-blue-500 border-blue-700',
-        'bg-blue-600 border-blue-800 text-white',
-    ];
-
     return (
         <section className="w-full lg:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-6">
             <StatsCard
                 text="Total Problems Solved"
                 title="Overall"
                 value={userData.totalSolved.toString()}
-                shade={shades[0]}
+                shade={SHADES[0]}
                 userData={userData}
             />
 
             {platformIds?.leetcodeId && (
                 <div
-                    className={`p-6 rounded-xl shadow-lg border ${shades[2]} hover:scale-105 transition-all duration-300`}
+                    className={`p-6 rounded-xl shadow-lg border ${SHADES[2]} hover:scale-105 transition-all duration-300`}
                 >
-                    <Leetcode username={platformIds.leetcodeId} userData={userData.leetcode} />
+                    <Leetcode userData={userData.leetcode} />
                 </div>
             )}
 
             {userData?.gfg && (
                 <div
-                    className={`p-6 rounded-xl shadow-lg border ${shades[3]} hover:scale-105 transition-all duration-300`}
+                    className={`p-6 rounded-xl shadow-lg border ${SHADES[3]} hover:scale-105 transition-all duration-300`}
                 >
                     <GFG userData={userData.gfg} />
                 </div>
@@ -264,7 +268,7 @@ const DashboardContent = ({ platformIds, userData }: DashboardContentProps) => {
 
             {platformIds?.codeforcesId && (
                 <div
-                    className={`p-6 rounded-xl shadow-lg border ${shades[4]} hover:scale-105 transition-all duration-300`}
+                    className={`p-6 rounded-xl shadow-lg border ${SHADES[4]} hover:scale-105 transition-all duration-300`}
                 >
                     <CodeForces userData={userData.codeforces} />
                 </div>
@@ -272,7 +276,7 @@ const DashboardContent = ({ platformIds, userData }: DashboardContentProps) => {
 
             {platformIds?.githubId && (
                 <div
-                    className={`p-6 rounded-xl shadow-lg border ${shades[5]} hover:scale-105 transition-all duration-300`}
+                    className={`p-6 rounded-xl shadow-lg border ${SHADES[5]} hover:scale-105 transition-all duration-300`}
                 >
                     <Github data={userData.github} />
                 </div>
@@ -281,17 +285,13 @@ const DashboardContent = ({ platformIds, userData }: DashboardContentProps) => {
     );
 };
 
-const StatsCard = ({ text, value, shade, title, userData }: StatsCardProps) => (
+const StatsCard = ({ text, value, shade, title }: StatsCardProps) => (
     <div
         className={`p-6 rounded-xl shadow-lg border ${shade} hover:scale-105 transition-all duration-300`}
     >
         <h1 className="text-2xl font-bold mb-2">{title}</h1>
-        {userData && (
-            <>
-                <h2 className="text-lg font-semibold mb-1">@{userData.username}</h2>
-                <p className="text-sm text-gray-600 mb-4">{text}</p>
-                <p className="text-4xl font-bold text-blue-600">{userData.totalSolved}</p>
-            </>
-        )}
+        <p className="text-sm text-gray-600 mb-4">{text}</p>
+
+        <p className="text-4xl font-bold text-blue-600">{value}</p>
     </div>
 );

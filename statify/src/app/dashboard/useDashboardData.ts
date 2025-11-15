@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import useLeetcodeData from "../hook/useLeetcodeData";
 import useGfgData from "../hook/useGfgData";
 import useGithubData from "../hook/useGithubData";
 import useCodeforcesData from "../hook/useCodeforcesData";
 import { GFGResponse } from "../fetchers/fetch-gfg";
-import { LeetcodeResponse } from "../fetchers/fetch-leetcode";
 import { CodeForcesReponse } from "../fetchers/fetch-codeforces";
 
 type PlatformId = {
@@ -15,7 +14,7 @@ type PlatformId = {
 };
 
 type CachedData = {
-    leetcodeData: LeetcodeResponse | null;
+    leetcodeData: any | null;
     gfgData: GFGResponse | null;
     githubData: any | null;
     codeforcesData: CodeForcesReponse | null;
@@ -23,58 +22,47 @@ type CachedData = {
 
 export const useDashboardData = (platformIds: PlatformId) => {
     const [cachedData, setCachedData] = useState<CachedData | null>(null);
-    const [shouldFetch, setShouldFetch] = useState({
-        leetcode: false,
-        gfg: false,
-        github: false,
-        codeforces: false,
-    });
+
+    const fetchFlags = useMemo(() => ({
+        leetcode: Boolean(platformIds.leetcodeId),
+        gfg: Boolean(platformIds.gfgId),
+        github: Boolean(platformIds.githubId),
+        codeforces: Boolean(platformIds.codeforcesId),
+    }), [
+        platformIds.leetcodeId,
+        platformIds.gfgId,
+        platformIds.githubId,
+        platformIds.codeforcesId,
+    ]);
+
 
     useEffect(() => {
         const cached = sessionStorage.getItem("platformData");
         if (cached) {
-            const parsed = JSON.parse(cached);
-            setCachedData(parsed);
+            setCachedData(JSON.parse(cached));
             sessionStorage.removeItem("platformData");
-        } else {
-            setShouldFetch({
-                leetcode: !!platformIds.leetcodeId,
-                gfg: !!platformIds.gfgId,
-                github: !!platformIds.githubId,
-                codeforces: !!platformIds.codeforcesId,
-            });
         }
     }, []);
 
-    const {
-        leetcodeData,
-        isLoading: leetLoading,
-        isError: leetError,
-    } = useLeetcodeData(
-        shouldFetch.leetcode ? platformIds.leetcodeId : undefined
-    );
 
-    const { gfgData, isLoading: gfgLoading, isError: gfgError } =
-        useGfgData(shouldFetch.gfg ? platformIds.gfgId : undefined);
+    const { leetcodeData, isLoading: lcLoad, isError: lcErr } =
+        useLeetcodeData(fetchFlags.leetcode ? platformIds.leetcodeId : undefined);
 
-    const {
-        githubData,
-        isLoading: ghLoading,
-        isError: ghError,
-    } = useGithubData(shouldFetch.github ? platformIds.githubId : undefined);
+    const { gfgData, isLoading: gfgLoad, isError: gfgErr } =
+        useGfgData(fetchFlags.gfg ? platformIds.gfgId : undefined);
 
-    const {
-        codeforcesData,
-        isLoading: cdLoading,
-        isError: cdError,
-    } = useCodeforcesData(
-        shouldFetch.codeforces ? platformIds.codeforcesId : undefined
-    );
+    const { githubData, isLoading: ghLoad, isError: ghErr } =
+        useGithubData(fetchFlags.github ? platformIds.githubId : undefined);
 
-    const isLoading = shouldFetch.leetcode && leetLoading ||
-        shouldFetch.gfg && gfgLoading ||
-        shouldFetch.github && ghLoading ||
-        shouldFetch.codeforces && cdLoading;
+    const { codeforcesData, isLoading: cfLoad, isError: cfErr } =
+        useCodeforcesData(fetchFlags.codeforces ? platformIds.codeforcesId : undefined);
+
+
+    const isLoading =
+        (fetchFlags.leetcode && lcLoad) ||
+        (fetchFlags.gfg && gfgLoad) ||
+        (fetchFlags.github && ghLoad) ||
+        (fetchFlags.codeforces && cfLoad);
 
     const finalData = {
         leetcodeData: cachedData?.leetcodeData ?? leetcodeData ?? null,
@@ -83,9 +71,11 @@ export const useDashboardData = (platformIds: PlatformId) => {
         codeforcesData: cachedData?.codeforcesData ?? codeforcesData ?? null,
     };
 
+    const isError = lcErr || gfgErr || ghErr || cfErr;
+
     return {
         ...finalData,
         isLoading,
-        isError: leetError || gfgError || ghError || cdError,
+        isError,
     };
 };

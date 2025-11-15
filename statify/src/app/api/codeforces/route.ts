@@ -2,49 +2,40 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
     try {
-        const { searchParams } = new URL(req.url);
-        const handle = searchParams.get("handle");
+        const handle = new URL(req.url).searchParams.get("handle");
 
         if (!handle) {
-            return NextResponse.json(
-                { error: "Handle parameter is required" },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: "Handle parameter is required" }, { status: 400 });
         }
 
-        const response = await fetch(
+        const profileRes = await fetch(
             `https://codeforces.com/api/user.info?handles=${handle}`,
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                cache: "no-store",
-            }
+            { cache: "no-store" }
         );
+        const profile = await profileRes.json();
 
-        if (!response.ok) {
-            return NextResponse.json(
-                { error: "Failed to fetch CodeForces data" },
-                { status: response.status }
-            );
+        if (profile.status !== "OK") {
+            return NextResponse.json({ error: "Invalid handle" }, { status: 404 });
         }
 
-        const data = await response.json();
+        const submissionsRes = await fetch(
+            `https://codeforces.com/api/user.status?handle=${handle}`,
+            { cache: "no-store" }
+        );
+        const submissions = await submissionsRes.json();
 
-        if (data.status !== "OK") {
-            return NextResponse.json(
-                { error: data.comment || "Invalid CodeForces handle" },
-                { status: 404 }
-            );
+        if (submissions.status !== "OK") {
+            return NextResponse.json({ error: "Could not fetch submissions" }, { status: 500 });
         }
 
-        return NextResponse.json(data, { status: 200 });
-    } catch (error: any) {
-        console.error("CodeForces API Error:", error);
         return NextResponse.json(
-            { error: error.message || "Internal server error" },
-            { status: 500 }
+            {
+                profile: profile.result[0],
+                submissions: submissions.result
+            },
+            { status: 200 }
         );
+    } catch (err: any) {
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

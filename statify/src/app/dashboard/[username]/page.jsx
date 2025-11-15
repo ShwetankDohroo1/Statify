@@ -1,5 +1,5 @@
 'use client'
-import DashBody from "@/components/bash-body";
+import DashBody from "@/components/dashboard/bash-body";
 export default function DashBoard() {
     return (
         <div className="h-full w-full">

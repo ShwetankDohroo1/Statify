@@ -17,6 +17,8 @@ export async function GET(request) {
         const user = await prisma.user.findUnique({
             where: { username },
             select: {
+                username: true,
+                email: true,
                 leetcodeId: true,
                 codeforcesId: true,
                 gfgId: true,
@@ -38,7 +40,7 @@ export async function GET(request) {
                 "Access-Control-Allow-Methods": "GET"
             }
         });
-    } 
+    }
     catch (error) {
         console.error(error);
         return NextResponse.json(
