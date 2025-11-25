@@ -1,20 +1,20 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import fetchLeetcodeStats from '../fetchers/fetch-leetcode';
+import { useQuery } from "@tanstack/react-query";
+import fetchLeetcodeStats from "../fetchers/fetch-leetcode";
 
-const useLeetcodeData = (leetcodeId?: string) => {
-    const {data, isLoading, isError} = useQuery({
-        queryKey: ['leetcode', leetcodeId],
-        queryFn: () => fetchLeetcodeStats(leetcodeId),
-        enabled: !!leetcodeId,
+const useLeetcodeData = (username?: string) => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ["leetcode", username],
+        queryFn: () => fetchLeetcodeStats(username),
+        enabled: !!username,
         staleTime: 1000 * 60 * 5,
     });
 
     return {
         leetcodeData: data,
         isLoading,
-        isError
+        isError,
     };
 };
 

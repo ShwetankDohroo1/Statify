@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { hashPassword } from "../utils/hashPassword";
+import { hashPassword } from "../../utils/hashPassword";
 import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();

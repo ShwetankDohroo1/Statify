@@ -8,6 +8,7 @@ export type GFGResponse = {
         easy: number;
         medium: number;
         hard: number;
+        institute_rank:number;
     };
 }
 

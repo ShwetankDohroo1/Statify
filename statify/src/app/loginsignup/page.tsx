@@ -1,7 +1,8 @@
+"use client";
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -10,6 +11,8 @@ import { Mail, Lock, User, Eye, EyeOff, Sparkles, ArrowRight } from 'lucide-reac
 import { Form, FormControl, FormField, FormItem, FormMessage } from '../../components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import api from '@/lib/api';
 
 const loginSchema = z.object({
     email: z.string().email('Enter a valid email'),
@@ -21,10 +24,10 @@ const signupSchema = loginSchema.extend({
 });
 
 const LoginSignupToggleModal = () => {
+    const { login, getProfile } = useAuth();
     const router = useRouter();
     const [isSignup, setIsSignup] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const form = useForm<any>({
@@ -46,36 +49,46 @@ const LoginSignupToggleModal = () => {
         try {
             setLoading(true);
             if (isSignup) {
-                await axios.post('/api/users/signup', values);
-                toast.success('Welcome aboard! 🎉');
+                await api.post('/users/signup', values);
+                toast.success('Welcome aboard! 🎉 Please login to continue.');
                 setIsSignup(false);
                 form.reset();
             } else {
-                const res = await axios.post('/api/users/login', { values, rememberMe });
-                if (res.data?.user) {
-                    const { username, leetcodeId, codeforcesId, gfgId, githubId } = res.data.user;
+                const response = await login(values.email, values.password);
+                console.log(response);
+                
+                if (response?.user) {
                     toast.success('Welcome back! 👋');
-                    if (rememberMe) {
-                        localStorage.setItem('rememberMe', 'true');
-                        localStorage.setItem('user', JSON.stringify(res.data.user));
-                    } else {
-                        sessionStorage.setItem('user', JSON.stringify(res.data.user));
+                    let profile = null;
+                    const maxTries = 6;
+                    for (let i = 0; i < maxTries; i++) {
+                        profile = await getProfile();
+                        if (profile) break;
+                        await new Promise((r) => setTimeout(r, 100 * (i + 1)));
                     }
-                    router.push(
-                        !leetcodeId && !codeforcesId && !gfgId && !githubId
-                            ? `/platform`
-                            : `/dashboard/${username}`
-                    );
+
+                    if (!profile) {
+                        toast.error('Could not validate session. Please refresh and try again.');
+                        return;
+                    }
+
+                    // Now safe to redirect; middleware will accept the cookie
+                    const { username, leetcodeId, codeforcesId, gfgId, githubId } = response.user;
+                    const hasSetupPlatforms = leetcodeId || codeforcesId || gfgId || githubId;
+                    router.push(hasSetupPlatforms ? `/dashboard/${username}` : '/platform');
                 } else {
                     toast.error('Invalid response from server');
                 }
             }
         } catch (err: any) {
-            toast.error(err?.response?.data?.error || 'Something went wrong');
+            const errorMessage = err?.response?.data?.error || err?.message || 'Something went wrong';
+            toast.error(errorMessage);
+            console.error('Auth error:', err);
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="w-full max-w-md mx-auto relative">
@@ -252,28 +265,6 @@ const LoginSignupToggleModal = () => {
                                     </FormItem>
                                 )}
                             />
-
-                            {!isSignup && (
-                                <div className="flex items-center justify-between">
-                                    <label className="flex items-center space-x-2 cursor-pointer group">
-                                        <input
-                                            type="checkbox"
-                                            checked={rememberMe}
-                                            onChange={() => setRememberMe(!rememberMe)}
-                                            className="w-4 h-4 rounded border-gray-300 text-[#00ff8c] focus:ring-[#00ff8c] cursor-pointer"
-                                        />
-                                        <span className="text-sm text-gray-300 group-hover:text-gray-800 transition-colors">
-                                            Remember me
-                                        </span>
-                                    </label>
-                                    <button
-                                        type="button"
-                                        className="text-md text-[#948979] hover:text-[#00d4ff] font-medium transition-colors"
-                                    >
-                                        Forgot password?
-                                    </button>
-                                </div>
-                            )}
 
                             <Button
                                 type="submit"

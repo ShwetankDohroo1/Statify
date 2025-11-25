@@ -8,9 +8,9 @@ const Github = ({ data }: any) => {
             title="GitHub"
             image={data.avatar}
             name={data.name}
-            subtitle={data.profileUrl}
             fields={[
-                { label: "Followers", value: data.followers },
+                { label: "Followers", value: data.followers, },
+                { label: "Public Repos", value: data.publicRepos },
                 { label: "Bio", value: data.bio ?? "None" },
             ]}
         />

@@ -10,7 +10,6 @@ const GFG = ({ userData }: any) => {
             title="GeeksForGeeks"
             image={d.profile_image_url}
             name={d.name}
-            subtitle={d.institute_name}
             fields={[
                 { label: "Problems Solved", value: d.total_problems_solved },
                 { label: "Score", value: d.score },

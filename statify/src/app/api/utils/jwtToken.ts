@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
+import { User } from "@prisma/client";
 
 const JWT_SECRET = process.env.TOKEN_SECRET as string;
 
@@ -15,7 +16,7 @@ type UserPayload = {
 
 const getUserFromToken = (req: NextRequest): UserPayload | null => {
     try {
-        const token = req.cookies.get("token")?.value || req.headers.get("authorization")?.replace("Bearer ", "");
+        const token = req.cookies.get("token")?.value;
 
         if (!token) {
             return null;
@@ -29,8 +30,17 @@ const getUserFromToken = (req: NextRequest): UserPayload | null => {
     }
 };
 
-const generateToken = (user: UserPayload): string => {
-    return jwt.sign(user, JWT_SECRET, { expiresIn: "30d" });
+const generateToken = (user: Pick<User, 'id' | 'username' | 'email'>): string => {
+    return jwt.sign(
+        {
+            id: user.id,
+            username: user.username,
+            email: user.email
+        },
+        JWT_SECRET,
+        { expiresIn: "30d" }
+    );
 }
 
 export { getUserFromToken, generateToken };
+export type { UserPayload };

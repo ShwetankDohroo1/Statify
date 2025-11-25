@@ -20,9 +20,17 @@ export default function NavBar({ onBgChange }) {
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("userToken");
-        router.push('/');
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/auth/logout', {
+                method: "POST",
+                credentials: "include",
+            });
+
+            router.push('/');
+        } catch (err) {
+            console.error("Logout failed:", err);
+        }
     };
 
     return (

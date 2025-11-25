@@ -1,6 +1,6 @@
 import { gateway } from "../../lib/gateway";
 
-const API = '/api/users/me?username=';
+const API = '/api/auth/me?username=';
 
 export type User = {
     username: string;

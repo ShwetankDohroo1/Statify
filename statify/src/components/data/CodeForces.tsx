@@ -1,22 +1,15 @@
 import PlatformCard from "../dashboard-cards";
 
 
-const CodeForces = ({ userData }: any) => {
+const CodeForces = ({ userData, solved }: any) => {
     if (!userData) return <p>No Codeforces data.</p>;
 
     const profile = userData.profile;
-    const submissions = userData.submissions;
-
-    const solved = submissions.filter((s: any) => s.verdict === "OK");
-    const uniqueSolved = new Set(
-        solved.map((s: any) => `${s.problem.contestId}-${s.problem.index}`)
-    );
 
     return (
         <PlatformCard
             title="Codeforces"
-            name={`${profile.firstName ?? ""} ${profile.lastName ?? ""}`}
-            subtitle={profile.handle}
+            name={profile.handle}
             fields={[
                 { label: "Rank", value: profile.rank ?? "Unrated" },
                 { label: "Rating", value: profile.rating ?? "N/A" },
@@ -29,7 +22,7 @@ const CodeForces = ({ userData }: any) => {
                 { label: "Friends", value: profile.friendOfCount ?? 0 },
             ]}
             footer={
-                <p><strong>Solved:</strong> {uniqueSolved.size}</p>
+                <p><strong>Solved:</strong> {solved}</p>
             }
         />
     );

@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import NavBar from '../navbar';
 import Leetcode from '../data/LeetCode';
 import CodeForces from '../data/CodeForces';
-import Mixed from '../data/Mixed';
 import useUserDetails from '../../app/hook/useUserDetails';
 import { GFGResponse } from '../../app/fetchers/fetch-gfg';
 import { CodeForcesReponse } from '../../app/fetchers/fetch-codeforces';
@@ -15,6 +14,7 @@ import Github from '../data/Github';
 import { SHADES } from './constant';
 import UserCard from './user-card';
 import { User } from '@/app/fetchers/get-user';
+import PlotGraph from '../plot-graph';
 
 type PlatformId = {
     leetcodeId: string;
@@ -32,6 +32,7 @@ type UserData = {
         profileUrl: string;
         bio: string | null;
         followers: number;
+        publicRepos: number;
     } | null;
     gfg: GFGResponse | null;
     leetcode: any | null;
@@ -46,13 +47,15 @@ type AccountsListProps = {
 type DashboardContentProps = {
     platformIds: PlatformId;
     userData: UserData;
+    codeforcesTotal?: number;
+    avgRank?: number;
 };
 
 type SidebarProps = {
     platformIds: PlatformId;
     username: string;
     userData: UserData;
-    userDetails?: User
+    userDetails?: User;
 };
 
 type AccountItemProps = {
@@ -62,11 +65,8 @@ type AccountItemProps = {
 };
 
 type StatsCardProps = {
-    text: string;
-    title: string;
-    value: string;
-    shade: string;
-    userData: UserData;
+    totalProblems: string;
+    avgRank?: number
 };
 
 export default function DashBody() {
@@ -104,11 +104,28 @@ export default function DashBody() {
     if (isLoading) return <LoadingUI />;
     if (isError) return <ErrorUI message="Something went wrong" />;
 
+    const solved = codeforcesData?.submissions?.filter((s: any) => s.verdict === "OK");
+    const uniqueSolved = new Set(
+        solved.map((s: any) => `${s.problem.contestId}-${s.problem.index}`)
+    );
+
+    const ranks = [
+        leetcodeData?.ranking ?? null,
+        gfgData?.data?.institute_rank ?? null,
+        codeforcesData?.rating ?? null,
+    ].filter(r => r !== null) as number[];
+
+    const avgRank = ranks.length > 0
+        ? Math.round(ranks.reduce((acc, r) => acc + r, 0) / ranks.length)
+        : undefined;
+
+
     const combinedData: UserData = {
         username: username ?? '',
         totalSolved:
-            (leetcodeData?.totalSolved || 0) +
-            (gfgData?.data.total_problems_solved || 0),
+            (leetcodeData?.solved.total || 0) +
+            (gfgData?.data.total_problems_solved || 0) +
+            (uniqueSolved?.size || 0),
         github: githubData
             ? {
                 name: githubData.name || 'N/A',
@@ -116,6 +133,7 @@ export default function DashBody() {
                 profileUrl: githubData.html_url || '#',
                 bio: githubData.bio,
                 followers: githubData.followers,
+                publicRepos: githubData.public_repos
             }
             : null,
         gfg: gfgData || null,
@@ -139,8 +157,11 @@ export default function DashBody() {
                 <DashboardContent
                     platformIds={platformIds}
                     userData={combinedData}
+                    codeforcesTotal={uniqueSolved?.size}
+                    avgRank={avgRank}
                 />
             </main>
+            <PlotGraph dailyCounts={leetcodeData.dailyCounts} dailySolved={leetcodeData.dailySolvedProblems} />
         </div>
     );
 }
@@ -161,14 +182,13 @@ const Sidebar = ({ platformIds, username, userDetails, userData }: SidebarProps)
     <aside className="w-full lg:w-1/4 space-y-6">
         <UserCard username={username} userData={userDetails} />
         <AccountsList platformIds={platformIds} userData={userData} />
-        {platformIds?.leetcodeId &&
-            platformIds?.gfgId &&
-            platformIds?.codeforcesId &&
-            platformIds?.githubId && (
-                <div className="bg-indigo-200 p-6 rounded-xl shadow-md border border-indigo-400">
-                    <Mixed userData={userData} />
-                </div>
-            )}
+        {platformIds?.githubId && (
+            <div
+                className={`p-6 rounded-xl shadow-lg border ${SHADES[5]} hover:scale-105 transition-all duration-300`}
+            >
+                <Github data={userData.github} />
+            </div>
+        )}
     </aside>
 );
 
@@ -239,15 +259,12 @@ const AccountItem = ({ name, id, color }: AccountItemProps) => {
     );
 };
 
-const DashboardContent = ({ platformIds, userData }: DashboardContentProps) => {
+const DashboardContent = ({ platformIds, userData, codeforcesTotal, avgRank }: DashboardContentProps) => {
     return (
         <section className="w-full lg:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-6">
             <StatsCard
-                text="Total Problems Solved"
-                title="Overall"
-                value={userData.totalSolved.toString()}
-                shade={SHADES[0]}
-                userData={userData}
+                totalProblems={userData.totalSolved.toString()}
+                avgRank={avgRank}
             />
 
             {platformIds?.leetcodeId && (
@@ -270,28 +287,26 @@ const DashboardContent = ({ platformIds, userData }: DashboardContentProps) => {
                 <div
                     className={`p-6 rounded-xl shadow-lg border ${SHADES[4]} hover:scale-105 transition-all duration-300`}
                 >
-                    <CodeForces userData={userData.codeforces} />
-                </div>
-            )}
-
-            {platformIds?.githubId && (
-                <div
-                    className={`p-6 rounded-xl shadow-lg border ${SHADES[5]} hover:scale-105 transition-all duration-300`}
-                >
-                    <Github data={userData.github} />
+                    <CodeForces userData={userData.codeforces} solved={codeforcesTotal} />
                 </div>
             )}
         </section>
     );
 };
 
-const StatsCard = ({ text, value, shade, title }: StatsCardProps) => (
+const StatsCard = ({ totalProblems, avgRank }: StatsCardProps) => (
     <div
-        className={`p-6 rounded-xl shadow-lg border ${shade} hover:scale-105 transition-all duration-300`}
+        className={`p-6 rounded-xl shadow-lg border hover:scale-105 transition-all duration-300`}
     >
-        <h1 className="text-2xl font-bold mb-2">{title}</h1>
-        <p className="text-sm text-gray-600 mb-4">{text}</p>
-
-        <p className="text-4xl font-bold text-blue-600">{value}</p>
+        <div className="flex justify-between">
+            <div className="flex flex-col">
+                <h1>Total Problems Solved</h1>
+                <p className="text-4xl font-bold text-blue-600">{totalProblems}</p>
+            </div>
+            <div className="">
+                <h1>Average Rank</h1>
+                <p className="text-4xl font-bold text-blue-600">{avgRank}</p>
+            </div>
+        </div>
     </div>
 );

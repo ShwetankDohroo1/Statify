@@ -1,9 +1,11 @@
 import bcryptjs from "bcryptjs";
 
-export async function comparePassword(inputPassword, storedPassword) {
+const comparePassword = async(inputPassword, storedPassword) => {
     const validPassword = await bcryptjs.compare(inputPassword, storedPassword);
     if (!validPassword) {
         throw new Error("Invalid password");
     }
     return validPassword;
 }
+
+export default comparePassword;
