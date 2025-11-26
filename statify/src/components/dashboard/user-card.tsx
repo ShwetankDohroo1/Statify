@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import UserProfileView from './user-profile-view';
 import UserProfileForm from './user-profile-form';
 import { User } from '@/app/fetchers/get-user';
+import { motion } from 'framer-motion';
 
 type Props = {
     username: string;
@@ -22,6 +23,9 @@ type Props = {
 const UserCard = ({ username, userData }: Props) => {
     const [isEditing, setIsEditing] = useState(false);
     const [currentData, setCurrentData] = useState<any>(userData);
+
+    // ✅ ADD THIS — hover animation state
+    const [isHover, setHover] = useState(false);
 
     const handleSaved = (newData?: any) => {
         if (newData) setCurrentData((p: any) => ({ ...p, ...newData }));
@@ -35,7 +39,20 @@ const UserCard = ({ username, userData }: Props) => {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <div className="p-6 rounded-xl shadow-lg border border-blue-400 bg-gradient-to-br from-blue-300 to-blue-500 text-white hover:scale-105 transition-all duration-300 cursor-pointer">
+                <motion.div
+                    initial={false}
+                    animate={{
+                        background: isHover
+                            ? "linear-gradient(to bottom right, rgba(59,130,246,0.4), rgba(29,78,216,0.4))"
+                            : "linear-gradient(to bottom right, rgba(59,130,246,0.2), rgba(29,78,216,0.2))"
+                    }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+
+                    onMouseEnter={() => setHover(true)}
+                    onMouseLeave={() => setHover(false)}
+
+                    className="p-6 rounded-xl shadow-lg border border-blue-400 text-white cursor-pointer"
+                >
                     <div className="flex items-center gap-4">
                         <div className="h-12 w-12 bg-blue-600 text-white font-bold rounded-full flex items-center justify-center shadow-md">
                             {username?.charAt(0)?.toUpperCase()}
@@ -45,7 +62,7 @@ const UserCard = ({ username, userData }: Props) => {
                             <p className="text-sm opacity-80">@{username}</p>
                         </div>
                     </div>
-                </div>
+                </motion.div>
             </DialogTrigger>
 
             <DialogContent className="max-w-lg">

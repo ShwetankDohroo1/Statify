@@ -9,7 +9,7 @@ export function middleware(request: NextRequest) {
     const protectedPrefixes = ['/dashboard', '/platform'];
 
     if (!token && protectedPrefixes.some(p => pathname.startsWith(p))) {
-        return NextResponse.redirect(new URL('/login', request.url));
+        return NextResponse.redirect(new URL('/', request.url));
     }
     if (token && publicPaths.includes(pathname)) {
         const payload = getUserFromToken(request);
